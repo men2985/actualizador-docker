@@ -14,7 +14,7 @@ sudo ./actualizar_todo.sh
 
 ---
 
-## 🔧 Paso 2 (si `n8n.pbxai.online` muestra error 502)
+## 🔧 Paso 2 (si muestra error 502)
 
 ```bash
 docker network connect backend nginx-app-1
