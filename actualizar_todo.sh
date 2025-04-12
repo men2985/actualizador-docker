@@ -1,28 +1,42 @@
 #!/bin/bash
 
-echo "🔄 Iniciando actualización general de contenedores en /home/docker"
+echo "🔄 Iniciando actualización de contenedores en /home/docker"
 echo "Fecha: $(date '+%Y-%m-%d %H:%M:%S')"
 echo "==============================================="
 
 BASE_DIR="/home/docker"
-RESULTADOS=""
+CARPETAS=("$BASE_DIR"/*/)
+TOTAL=${#CARPETAS[@]}
+ACTUAL=0
 
-for dir in "$BASE_DIR"/*/; do
+# Función para mostrar barra de progreso
+mostrar_barra() {
+  local progreso=$1
+  local total=$2
+  local porcentaje=$(( 100 * progreso / total ))
+  local barras=$(( porcentaje / 5 ))  # Cada barra representa 5%
+  local espacios=$(( 20 - barras ))
+
+  echo -ne "\r⏳ Progreso: ["
+  printf '%0.s#' $(seq 1 $barras)
+  printf '%0.s ' $(seq 1 $espacios)
+  echo -n "] $porcentaje%"
+}
+
+for dir in "${CARPETAS[@]}"; do
   if [[ -f "$dir/docker-compose.yml" ]]; then
-    RESULTADOS+="\n📁 Actualizando: $dir\n"
-    
+    ((ACTUAL++))
+    echo -e "\n📁 Actualizando: $dir"
+    mostrar_barra $ACTUAL $TOTAL
+
     cd "$dir"
-    SALIDA_DOWN=$(docker compose down 2>&1)
-    SALIDA_PULL=$(docker compose pull 2>&1)
-    SALIDA_UP=$(docker compose up -d 2>&1)
-    
-    RESULTADOS+="$SALIDA_DOWN\n$SALIDA_PULL\n$SALIDA_UP\n"
-    RESULTADOS+="✅ Finalizado: $dir\n"
-    RESULTADOS+="---------------------------------------\n"
-  else
-    RESULTADOS+="⚠️  No se encontró docker-compose.yml en $dir, saltando...\n"
+    docker compose down
+    docker compose pull
+    docker compose up -d
+
+    echo -e "\n✅ Finalizado: $dir"
+    echo "---------------------------------------"
   fi
 done
 
-echo -e "$RESULTADOS"
-echo "🎉 Actualización completa de todos los contenedores."
+echo -e "\n🎉 Actualización completa de todos los contenedores."
