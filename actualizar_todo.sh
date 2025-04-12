@@ -23,6 +23,22 @@ mostrar_barra() {
   echo "⏳ Progreso: [$barra] $porcentaje%"
 }
 
+# Función para asegurar que nginx-app-1 esté en la red backend
+verificar_red_nginx() {
+  echo "🔍 Verificando conexión de nginx-app-1 a la red 'backend'..."
+  if ! docker inspect nginx-app-1 | grep -q '"backend"'; then
+    echo "➕ Conectando nginx-app-1 a la red 'backend'..."
+    docker network connect backend nginx-app-1 && echo "✅ Conectado con éxito."
+    echo "🔄 Reiniciando nginx-app-1..."
+    docker restart nginx-app-1
+  else
+    echo "✅ nginx-app-1 ya está conectado a 'backend'."
+  fi
+  echo "---------------------------------------"
+}
+
+verificar_red_nginx
+
 for dir in "${CARPETAS[@]}"; do
   if [[ -f "$dir/docker-compose.yml" ]]; then
     ((ACTUAL++))
